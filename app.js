@@ -1,7 +1,7 @@
 /* CodeBreak Party - Supabase multiplayer */
 const CONFIG = {
-  SUPABASE_URL: "PASTE_YOUR_SUPABASE_URL",
-  SUPABASE_ANON_KEY: "PASTE_YOUR_SUPABASE_ANON_KEY"
+  SUPABASE_URL: "https://csudjixajhfsdjezedbl.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_Xh1g88ix8BLOEsWJcw37Cw_QrHqMiO7"
 };
 const configured = !CONFIG.SUPABASE_URL.startsWith("PASTE_") && !CONFIG.SUPABASE_ANON_KEY.startsWith("PASTE_");
 const sb = configured ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) : null;
