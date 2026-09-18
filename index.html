@@ -1,92 +1,676 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b1020">
-  <title>CodeBreak Party</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b16">
+<title>CodeBreak Party</title>
+<style>
+:root {
+--font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+--bg: #070b16;
+--card-bg: #0f1629e8;
+--accent: #6d5dfc;
+--accent-hover: #5849e0;
+--success: #22c55e;
+--warning: #f59e0b;
+--danger: #ef4444;
+--text: #eef2ff;
+--muted: #94a3b8;
+--border: #ffffff14;
+}
+* { box-sizing: border-box; }
+body {
+margin: 0;
+min-height: 100vh;
+font-family: var(--font);
+color: var(--text);
+background: radial-gradient(circle at 50% 0%, #182348 0%, #0b1020 40%, var(--bg) 80%);
+line-height: 1.5;
+}
+button, input, select { font: inherit; }
+.topbar {
+height: 64px;
+padding: 0 max(20px, env(safe-area-inset-right));
+display: flex;
+align-items: center;
+justify-content: space-between;
+position: sticky;
+top: 0;
+z-index: 10;
+background: rgba(7, 11, 22, 0.8);
+backdrop-filter: blur(12px);
+border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 900; font-size: 20px; letter-spacing: -0.02em; }
+.brand span { color: var(--accent); }
+.nav-actions { display: flex; gap: 8px; align-items: center; }
+select, .icon-btn {
+background: #11182d;
+color: #fff;
+border: 1px solid var(--border);
+border-radius: 12px;
+padding: 8px 12px;
+cursor: pointer;
+}
+main { max-width: 800px; margin: 0 auto; padding: 24px 16px 60px; }
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.25s ease-out; }
+.card {
+background: var(--card-bg);
+border: 1px solid var(--border);
+border-radius: 20px;
+padding: 24px;
+margin-bottom: 20px;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+.eyebrow { font-size: 11px; letter-spacing: 0.18em; color: var(--accent); font-weight: 800; text-transform: uppercase; }
+h1 { font-size: clamp(26px, 5vw, 42px); line-height: 1.1; margin: 8px 0 16px; font-weight: 800; }
+h2 { margin: 0 0 16px; font-size: 20px; font-weight: 700; }
+p { color: var(--muted); margin-top: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+label { display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 600; }
+input {
+width: 100%;
+padding: 14px 16px;
+border-radius: 12px;
+border: 1px solid var(--border);
+background: #080d1c;
+color: #fff;
+outline: none;
+transition: all 0.2s;
+}
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 93, 252, 0.25); }
+button {
+border: 0;
+border-radius: 12px;
+padding: 14px 20px;
+font-weight: 700;
+cursor: pointer;
+transition: transform 0.1s, background 0.2s;
+}
+button:active { transform: scale(0.98); }
+.primary { background: var(--accent); color: #fff; width: 100%; margin-top: 10px; }
+.primary:hover { background: var(--accent-hover); }
+.secondary { background: #1b2642; color: #fff; }
+.ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 100%; margin-top: 12px; }
+/* Player Cards & Target Selector */
+.players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin: 16px 0; }
+.player-card {
+background: #080d1c;
+border: 2px solid var(--border);
+border-radius: 14px;
+padding: 14px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+position: relative;
+transition: all 0.2s;
+}
+.player-card.is-me { border-color: rgba(109, 93, 252, 0.4); }
+.player-card.is-turn { border-color: var(--accent); background: rgba(109, 93, 252, 0.1); box-shadow: 0 0 15px rgba(109, 93, 252, 0.3); }
+.player-card.eliminated { opacity: 0.4; filter: grayscale(0.8); }
+.player-card .name { font-weight: 800; font-size: 15px; color: #fff; word-break: break-word; }
+.player-card .status-tag { font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+.status-ready { color: var(--success); }
+.status-waiting { color: var(--warning); }
+.status-dead { color: var(--danger); }
+/* Target Selection Buttons */
+.targets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+.target-btn {
+background: #080d1c;
+border: 2px solid var(--border);
+border-radius: 12px;
+padding: 12px;
+color: #fff;
+font-weight: 700;
+cursor: pointer;
+text-align: center;
+transition: all 0.2s;
+}
+.target-btn:hover { border-color: rgba(109, 93, 252, 0.6); }
+.target-btn.selected { border-color: var(--accent); background: var(--accent); color: #fff; box-shadow: 0 0 12px rgba(109, 93, 252, 0.4); }
+/* Secret Row */
+.secret-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-top: 16px; }
+.secret-row .primary { margin: 0; width: auto; height: 48px; }
+/* Turn Banner & Badges */
+.turn-banner {
+padding: 14px 18px;
+border-radius: 14px;
+font-weight: 800;
+text-align: center;
+margin-bottom: 16px;
+font-size: 16px;
+background: #11182d;
+border: 1px solid var(--border);
+}
+.turn-banner.my-turn { background: linear-gradient(135deg, #6d5dfc, #4f46e5); color: #fff; box-shadow: 0 4px 20px rgba(109, 93, 252, 0.4); }
+/* History Feed */
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.guess-card {
+background: #080d1c;
+border: 1px solid var(--border);
+border-radius: 14px;
+padding: 14px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.guess-info { display: flex; flex-direction: column; gap: 2px; }
+.guess-route { font-size: 13px; color: var(--muted); font-weight: 600; }
+.guess-value { font-size: 22px; font-weight: 900; letter-spacing: 2px; color: #fff; }
+.guess-chips { display: flex; gap: 4px; font-size: 18px; }
+/* Modals & Toasts */
+.toast {
+position: fixed;
+left: 50%;
+bottom: 24px;
+transform: translate(-50%, 40px);
+background: #f8fafc;
+color: #0f172a;
+padding: 12px 20px;
+border-radius: 14px;
+font-weight: 800;
+opacity: 0;
+pointer-events: none;
+transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+z-index: 100;
+box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.modal-overlay {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.85);
+backdrop-filter: blur(8px);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 50;
+padding: 16px;
+}
+.winner-box {
+background: linear-gradient(135deg, #15803d, #166534);
+color: #fff;
+padding: 20px;
+border-radius: 16px;
+text-align: center;
+font-size: 20px;
+font-weight: 900;
+margin-bottom: 16px;
+box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+}
+.hidden { display: none !important; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 600px) {
+.grid2 { grid-template-columns: 1fr; }
+.secret-row { grid-template-columns: 1fr; }
+.secret-row .primary { width: 100%; }
+}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">🔐 CodeBreak <span>Party</span></div>
-    <select id="language" aria-label="Language">
-      <option value="fr">🇫🇷 Français</option>
-      <option value="en">🇬🇧 English</option>
-      <option value="es">🇪🇸 Español</option>
-      <option value="nl">🇳🇱 Nederlands</option>
-    </select>
-  </header>
+<header class="topbar">
+<div class="brand">🔐 CodeBreak <span>Party</span></div>
+<div class="nav-actions">
+<button id="soundToggle" class="icon-btn" aria-label="Audio">🔊</button>
+<select id="language" aria-label="Language">
+<option value="fr">🇫🇷 FR</option>
+<option value="en">🇬🇧 EN</option>
+<option value="es">🇪🇸 ES</option>
+<option value="nl">🇳🇱 NL</option>
+</select>
+</div>
+</header>
+<main>
+<!-- Config Modal if missing keys -->
+<div id="configModal" class="modal-overlay hidden">
+<div class="card" style="max-width: 460px; width: 100%;">
+<h2>Configuration Supabase</h2>
+<p>Entrez vos identifiants Supabase pour démarrer l'application.</p>
+<label><span>SUPABASE_URL</span><input id="cfgUrl" placeholder="https://xyz.supabase.co"></label>
 
-  <main>
-    <section id="home" class="screen active">
-      <div class="hero card">
-        <div class="eyebrow">MULTIPLAYER • 4 DIGITS</div>
-        <h1 data-i18n="title">Trouve les codes. Reste le dernier.</h1>
-        <p data-i18n="subtitle">Crée un salon, partage le même lien et joue en temps réel.</p>
-        <div class="grid2">
-          <label><span data-i18n="nickname">Pseudo</span><input id="nickname" maxlength="18" autocomplete="nickname" placeholder="Ton pseudo"></label>
-          <label><span data-i18n="roomCode">Code du salon</span><input id="roomCode" maxlength="12" autocapitalize="characters" placeholder="PARTY1"></label>
-        </div>
-        <button id="joinBtn" class="primary" data-i18n="join">Rejoindre le salon</button>
-        <p id="configWarning" class="warning hidden"></p>
-      </div>
-      <div class="rules card">
-        <h2 data-i18n="how">Comment jouer</h2>
-        <ul>
-          <li data-i18n="rule1">Chaque joueur choisit un code secret de 4 chiffres.</li>
-          <li data-i18n="rule2">À ton tour, choisis un joueur et propose 4 chiffres.</li>
-          <li data-i18n="rule3">🟩 bien placé • 🟨 mal placé • ⬜ absent.</li>
-          <li data-i18n="rule4">Si tu trouves le code exact, le joueur ciblé est éliminé.</li>
-          <li data-i18n="rule5">À plus de 2 joueurs, la partie continue jusqu'au dernier joueur restant.</li>
-        </ul>
-      </div>
-    </section>
 
-    <section id="lobby" class="screen">
-      <div class="card">
-        <div class="room-head">
-          <div><small data-i18n="room">Salon</small><strong id="roomLabel"></strong></div>
-          <button id="copyLink" class="secondary" data-i18n="copyLink">Copier le lien</button>
-        </div>
-        <h1 data-i18n="lobbyTitle">Salle d'attente</h1>
-        <p id="lobbyStatus"></p>
-        <div id="players" class="players"></div>
-        <div class="secret-row">
-          <label><span data-i18n="secret">Ton code secret (4 chiffres)</span><input id="secret" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></label>
-          <button id="readyBtn" class="primary" data-i18n="ready">Je suis prêt</button>
-        </div>
-        <button id="startBtn" class="primary hidden" data-i18n="start">Lancer la partie</button>
-        <button id="leaveLobby" class="ghost" data-i18n="leave">Quitter</button>
-      </div>
-    </section>
-
-    <section id="game" class="screen">
-      <div class="card">
-        <div class="game-head">
-          <div><small data-i18n="room">Salon</small><strong id="gameRoom"></strong></div>
-          <div id="phaseBadge" class="badge"></div>
-        </div>
-        <div id="winnerBanner" class="winner hidden"></div>
-        <div id="gamePlayers" class="players"></div>
-        <div id="guessPanel" class="guess-panel">
-          <h2 data-i18n="yourTurn">À toi de jouer</h2>
-          <p data-i18n="chooseTarget">Choisis un adversaire encore en jeu.</p>
-          <div id="targetButtons" class="target-buttons"></div>
-          <label><span data-i18n="guess">Code à tester</span><input id="guess" inputmode="numeric" maxlength="4" placeholder="1234"></label>
-          <button id="guessBtn" class="primary" data-i18n="try">Tester le code</button>
-          <p id="turnMessage" class="warning hidden"></p>
-        </div>
-      </div>
-      <div class="card">
-        <h2 data-i18n="history">Historique</h2>
-        <div id="history" class="history"></div>
-      </div>
-      <button id="leaveGame" class="ghost" data-i18n="leave">Quitter</button>
-    </section>
-  </main>
-  <div id="toast" class="toast"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+<label><span>SUPABASE_ANON_KEY</span><input id="cfgKey" type="password" placeholder="eyJhbGci..."></label>
+<button id="saveConfigBtn" class="primary">Enregistrer & Connexion</button>
+</div>
+</div>
+<!-- Screen 1: Home -->
+<section id="home" class="screen active">
+<div class="card">
+<div class="eyebrow">MULTIPLAYER • 4 DIGITS</div>
+<h1 data-i18n="title">Trouve les codes. Reste le dernier.</h1>
+<p data-i18n="subtitle">Crée un salon, partage le code et affronte tes amis en temps réel.</p>
+<div class="grid2">
+<label><span data-i18n="nickname">Pseudo</span><input id="nickname" maxlength="18" placeholder="Ton pseudo"></label>
+<label><span data-i18n="roomCode">Code du salon</span><input id="roomCode" maxlength="12" autocapitalize="characters" placeholder="PARTY1"></label>
+</div>
+<button id="joinBtn" class="primary" data-i18n="join">Rejoindre / Créer</button>
+</div>
+<div class="card">
+<h2 data-i18n="how">Règles du jeu</h2>
+<ul style="padding-left: 20px; color: var(--muted);">
+<li data-i18n="rule1">Chaque joueur enregistre un code secret à 4 chiffres.</li>
+<li data-i18n="rule2">À ton tour, choisis un adversaire et propose un code.</li>
+<li data-i18n="rule3">🟩 chiffre bien placé • 🟨 chiffre mal placé • ⬜ absent.</li>
+<li data-i18n="rule4">Trouve le code exact pour éliminer la cible.</li>
+<li data-i18n="rule5">Le dernier survivant remporte la partie !</li>
+</ul>
+</div>
+</section>
+<!-- Screen 2: Lobby -->
+<section id="lobby" class="screen">
+<div class="card">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+<div><small data-i18n="room" style="color:var(--muted)">Salon</small><h2 id="lobbyRoomLabel" style="margin:0"></h2></div>
+<button id="copyLinkBtn" class="secondary" data-i18n="copyLink">📋 Copier le lien</button>
+</div>
+<p data-i18n="lobbyTitle">Salle d'attente</p>
+<div id="lobbyPlayers" class="players-grid"></div>
+<div class="secret-row">
+<label><span data-i18n="secret">Ton code secret (4 chiffres)</span><input id="secretInput" type="password" maxlength="4" inputmode="numeric" placeholder="••••"></label>
+<button id="readyBtn" class="primary" data-i18n="ready">Je suis prêt</button>
+</div>
+<button id="startBtn" class="primary hidden" data-i18n="start" style="margin-top:20px; background:var(--success)">Lancer la partie</button>
+<button id="leaveLobbyBtn" class="ghost" data-i18n="leave">Quitter le salon</button>
+</div>
+</section>
+<!-- Screen 3: Game -->
+<section id="game" class="screen">
+<div id="winnerBanner" class="winner-box hidden"></div>
+<div id="turnBanner" class="turn-banner"></div>
+<div class="card">
+<h2>Joueurs en compétition</h2>
+<div id="gamePlayers" class="players-grid"></div>
+</div>
+<div id="guessPanel" class="card">
+<h2 data-i18n="yourTurn">À toi de jouer</h2>
+<p data-i18n="chooseTarget">Sélectionne la cible à attaquer :</p>
+<div id="targetGrid" class="targets-grid"></div>
+<div style="margin-top: 14px;">
+<label><span data-i18n="guess">Code à tester (4 chiffres)</span><input id="guessInput" type="text" maxlength="4" inputmode="numeric" placeholder="1234"></label>
+<button id="guessBtn" class="primary" data-i18n="try">Tester le code</button>
+</div>
+</div>
+<div class="card">
+<h2 data-i18n="history">Historique des attaques</h2>
+<div id="historyList" class="history-list"></div>
+</div>
+<button id="restartBtn" class="primary hidden" style="background:var(--success); margin-bottom:10px;">🎮 Relancer une partie</button>
+<button id="leaveGameBtn" class="ghost" data-i18n="leave">Quitter la partie</button>
+</section>
+</main>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Configuration & Credentials Management
+let CONFIG = {
+SUPABASE_URL: "PASTE_YOUR_SUPABASE_URL",
+SUPABASE_ANON_KEY: "PASTE_YOUR_SUPABASE_ANON_KEY"
+};
+const savedUrl = localStorage.getItem("cb_sb_url");
+const savedKey = localStorage.getItem("cb_sb_key");
+if (savedUrl && savedKey) {
+CONFIG.SUPABASE_URL = savedUrl;
+CONFIG.SUPABASE_ANON_KEY = savedKey;
+}
+let isConfigured = !CONFIG.SUPABASE_URL.startsWith("PASTE_") && !CONFIG.SUPABASE_ANON_KEY.startsWith("PASTE_");
+let sb = isConfigured ? window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY) : null;
+// Translations Dictionary
+const I18N = {
+fr: {
+title:"Trouve les codes. Reste le dernier.", subtitle:"Crée un salon, partage le code et affronte tes amis.",
+nickname:"Pseudo", roomCode:"Code du salon", join:"Rejoindre / Créer", how:"Règles du jeu",
+rule1:"Chaque joueur enregistre un code secret à 4 chiffres.", rule2:"À ton tour, choisis un adversaire et propose un code.",
+rule3:"🟩 bien placé • 🟨 mal placé • ⬜ absent.", rule4:"Trouve le code exact pour éliminer la cible.",
+rule5:"Le dernier survivant remporte la partie !", room:"Salon", copyLink:"📋 Copier le lien",
+lobbyTitle:"Salle d'attente", secret:"Ton code secret (4 chiffres)", ready:"Je suis prêt",
+unready:"Modifier le code", start:"🚀 Lancer la partie", leave:"Quitter", yourTurn:"À toi de jouer",
+chooseTarget:"Sélectionne l'adversaire à cibler :", guess:"Code à tester", try:"Attaquer", history:"Historique",
+waiting:"En attente", readyStatus:"Prêt", dead:"Éliminé", inGame:"En jeu", started:"Partie en cours",
+finished:"Partie terminée", notYourTurn:"Ce n'est pas ton tour.", invalid:"Entre exactement 4 chiffres.",
+select:"Sélectionne une cible.", found:"🎯 Code trouvé ! Joueur éliminé !", eliminatedYou:"Tu as été éliminé !",
+winner:"🎉 Victoire éclatante de ", copied:"Lien copié !", joined:"Salon rejoint.", hostOnly:"Seul l'hôte peut lancer la partie."
+},
+en: {
+title:"Crack the codes. Be the last standing.", subtitle:"Create a room, share the code and play in real-time.",
+nickname:"Nickname", roomCode:"Room Code", join:"Join / Create", how:"How to play",
+rule1:"Each player registers a secret 4-digit code.", rule2:"On your turn, choose an opponent and guess 4 digits.",
+rule3:"🟩 correct place • 🟨 wrong place • ⬜ absent.", rule4:"Find the exact code to eliminate your target.",
+rule5:"The last survivor wins the game!", room:"Room", copyLink:"📋 Copy Link",
+lobbyTitle:"Lobby", secret:"Your secret code (4 digits)", ready:"I'm ready",
+unready:"Change secret", start:"🚀 Start Game", leave:"Leave", yourTurn:"Your Turn",
+chooseTarget:"Select an opponent to target:", guess:"Code to test", try:"Attack", history:"History",
+waiting:"Waiting", readyStatus:"Ready", dead:"Eliminated", inGame:"In game", started:"Game in progress",
+finished:"Game over", notYourTurn:"It's not your turn.", invalid:"Enter exactly 4 digits.",
+select:"Select a target.", found:"🎯 Code cracked! Player eliminated!", eliminatedYou:"You have been eliminated!",
+winner:"🎉 Glorious victory for ", copied:"Link copied!", joined:"Joined room.", hostOnly:"Only the host can start."
+}
+};
+let lang = localStorage.getItem("cb_lang") || "fr";
+let soundEnabled = true;
+let me = null, room = null, channel = null, selectedTarget = null, players = [];
+const $ = id => document.getElementById(id);
+const t = key => (I18N[lang] && I18N[lang][key]) || I18N.fr[key] || key;
+// Web Audio Synthesizer
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+if (!soundEnabled || !audioCtx) return;
+if (audioCtx.state === 'suspended') audioCtx.resume();
+const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+osc.connect(gain); gain.connect(audioCtx.destination);
+const now = audioCtx.currentTime;
+if (type === 'click') {
+osc.frequency.setValueAtTime(400, now);
+gain.gain.setValueAtTime(0.05, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+osc.start(now); osc.stop(now + 0.05);
+} else if (type === 'turn') {
+osc.frequency.setValueAtTime(520, now);
+osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+gain.gain.setValueAtTime(0.1, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+osc.start(now); osc.stop(now + 0.2);
+} else if (type === 'hit') {
+osc.frequency.setValueAtTime(300, now);
+osc.frequency.exponentialRampToValueAtTime(600, now + 0.3);
+gain.gain.setValueAtTime(0.15, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+osc.start(now); osc.stop(now + 0.35);
+} else if (type === 'win') {
+osc.type = 'triangle';
+osc.frequency.setValueAtTime(440, now);
+osc.frequency.setValueAtTime(554.37, now + 0.1);
+osc.frequency.setValueAtTime(659.25, now + 0.2);
+gain.gain.setValueAtTime(0.15, now);
+gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+osc.start(now); osc.stop(now + 0.5);
+}
+}
+function applyLang() {
+document.querySelectorAll("[data-i18n]").forEach(e => e.textContent = t(e.dataset.i18n));
+$("language").value = lang;
+}
+function showScreen(id) {
+document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+$(id).classList.add("active");
+}
+function toast(msg) {
+const el = $("toast");
+el.textContent = msg;
+el.classList.add("show");
+setTimeout(() => el.classList.remove("show"), 2600);
+}
+function escapeHtml(s) {
+return String(s).replace(/[&<>"']/g, c => ({ "&":"&","<":"<",">":">",'"':""","'":"'" }[c]));
+}
+async function ensureAuth() {
+if (!sb) throw new Error("Supabase non configuré");
+let { data, error } = await sb.auth.getSession();
+if (error) throw error;
+if (!data.session) {
+let res = await sb.auth.signInAnonymously();
+if (res.error) throw res.error;
+me = res.data.user;
+} else {
+me = data.session.user;
+}
+}
+async function loadRoom() {
+let r = await sb.from("rooms").select("*").eq("id", room.id).single();
+if (r.error) throw r.error;
+return r.data;
+}
+async function loadPlayers() {
+let r = await sb.from("players").select("user_id, nickname, ready, eliminated, joined_at").eq("room_id", room.id).order("joined_at");
+if (r.error) throw r.error;
+players = r.data || [];
+renderLobbyPlayers();
+renderGamePlayers();
+updateControls();
+}
+function renderLobbyPlayers() {
+$("lobbyPlayers").innerHTML = players.map(p => ⁠<div class="player-card ${p.user_id === me?.id ? 'is-me' : ''}"> <span class="name">${escapeHtml(p.nickname)}${p.user_id === me?.id ? ' (Toi)' : ''}</span> <span class="status-tag ${p.ready ? 'status-ready' : 'status-waiting'}"> ${p.ready ? '✓ ' + t('readyStatus') : '⏳ ' + t('waiting')} </span> </div>⁠).join("");
+}
+function renderGamePlayers() {
+$("gamePlayers").innerHTML = players.map(p => ⁠<div class="player-card ${p.user_id === me?.id ? 'is-me' : ''} ${p.user_id === room.turn_user_id ? 'is-turn' : ''} ${p.eliminated ? 'eliminated' : ''}"> <span class="name">${escapeHtml(p.nickname)}${p.user_id === me?.id ? ' (Toi)' : ''}</span> <span class="status-tag ${p.eliminated ? 'status-dead' : 'status-ready'}"> ${p.eliminated ? '💀 ' + t('dead') : '⚔️ ' + t('inGame')} </span> </div>⁠).join("");
+}
+function updateControls() {
+const myPlayer = players.find(p => p.user_id === me.id);
+if (!myPlayer) return;
+$("readyBtn").textContent = myPlayer.ready ? t("unready") : t("ready");
+$("secretInput").disabled = myPlayer.ready;
+$("startBtn").classList.toggle("hidden", !(room.host_id === me.id && room.status === "lobby"));
+$("restartBtn").classList.toggle("hidden", !(room.host_id === me.id && room.status === "finished"));
+}
+async function joinRoom() {
+if (!isConfigured) {
+$("configModal").classList.remove("hidden");
+return;
+}
+const nick = $("nickname").value.trim().slice(0, 18);
+const code = $("roomCode").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+if (!nick || code.length < 3) {
+toast("Veuillez entrer un pseudo et un code valide.");
+return;
+}
+try {
+await ensureAuth();
+let rr = await sb.from("rooms").select("*").eq("code", code).maybeSingle();
+if (!rr.data) {
+let ins = await sb.from("rooms").insert({ code, host_id: me.id, status: "lobby" }).select().single();
+if (ins.error) throw ins.error;
+room = ins.data;
+} else {
+room = rr.data;
+}
+let existing = await sb.from("players").select("*").eq("room_id", room.id).eq("user_id", me.id).maybeSingle();
+if (!existing.data) {
+let add = await sb.from("players").insert({ room_id: room.id, user_id: me.id, nickname: nick, ready: false }).select().single();
+if (add.error) throw add.error;
+} else {
+await sb.from("players").update({ nickname: nick }).eq("room_id", room.id).eq("user_id", me.id);
+}
+$("lobbyRoomLabel").textContent = room.code;
+history.pushState({}, '', location.pathname + "?room=" + encodeURIComponent(room.code));
+await loadPlayers();
+subscribe();
+toast(t("joined"));
+if (room.status === "playing" || room.status === "finished") {
+showScreen("game");
+await refreshGame();
+} else {
+showScreen("lobby");
+}
+} catch (err) {
+console.error(err);
+toast(err.message || "Erreur de connexion");
+}
+}
+function subscribe() {
+if (channel) sb.removeChannel(channel);
+channel = sb.channel("room-" + room.id, { config: { presence: { key: me.id } } });
+channel
+.on("postgres_changes", { event: "", schema: "public", table: "players", filter: "room_id=eq." + room.id }, async () => {
+await loadPlayers();
+if (room.status !== "lobby") await refreshGame();
+})
+.on("postgres_changes", { event: "", schema: "public", table: "rooms", filter: "id=eq." + room.id }, async () => {
+room = await loadRoom();
+showScreen(room.status === "lobby" ? "lobby" : "game");
+await loadPlayers();
+if (room.status !== "lobby") await refreshGame();
+})
+.on("postgres_changes", { event: "INSERT", schema: "public", table: "guesses", filter: "room_id=eq." + room.id }, async () => {
+await refreshGame();
+})
+.on("presence", { event: "leave" }, async ({ leftPresences }) => {
+if (room && room.host_id === me.id) {
+for (const p of leftPresences) {
+await sb.rpc("handle_player_disconnect", { p_room_id: room.id, p_user_id: p.key });
+}
+}
+})
+.subscribe(async (status) => {
+if (status === "SUBSCRIBED") {
+await channel.track({ online_at: new Date().toISOString() });
+}
+});
+}
+async function setSecret() {
+const secret = ￼
+if (!/^\d{4}/.test(secret)) {
+toast(t("invalid"));
+return false;
+}
+let res = await sb.rpc("set_secret", { p_room_id: room.id, p_secret: secret });
+if (res.error) {
+toast(res.error.message);
+return false;
+}
+return true;
+}
+$("readyBtn").onclick = async () => {
+playSound('click');
+let myPlayer = players.find(p => p.user_id === me.id);
+if (!myPlayer) return;
+if (!myPlayer.ready) {
+if (!(await setSecret())) return;
+await sb.from("players").update({ ready: true }).eq("room_id", room.id).eq("user_id", me.id);
+} else {
+await sb.from("players").update({ ready: false }).eq("room_id", room.id).eq("user_id", me.id);
+}
+await loadPlayers();
+};
+$("startBtn").onclick = async () => {
+playSound('click');
+if (room.host_id !== me.id) return toast(t("hostOnly"));
+let res = await sb.rpc("start_game", { p_room_id: room.id });
+if (res.error) toast(res.error.message);
+};
+$("restartBtn").onclick = async () => {
+playSound('click');
+let res = await sb.rpc("restart_game", { p_room_id: room.id });
+if (res.error) toast(res.error.message);
+};
+function selectTarget(id) {
+playSound('click');
+selectedTarget = id;
+document.querySelectorAll("#targetGrid .target-btn").forEach(b => {
+b.classList.toggle("selected", b.dataset.id === id);
+});
+}
+async function refreshGame() {
+room = await loadRoom();
+await loadPlayers();
+const activePlayers = players.filter(p => !p.eliminated);
+const isMyTurn = room.turn_user_id === me.id;
+const myPlayer = players.find(p => p.user_id === me.id);
+// Turn Banner
+const turnPlayer = players.find(p => p.user_id === room.turn_user_id);
+const turnBanner = $("turnBanner");
+if (room.status === "playing") {
+if (isMyTurn) {
+turnBanner.textContent = "🎯 C'est À TOI DE JOUER !";
+turnBanner.className = "turn-banner my-turn";
+playSound('turn');
+} else {
+turnBanner.textContent = "⏳ Au tour de " + (turnPlayer ? turnPlayer.nickname : "...");
+turnBanner.className = "turn-banner";
+}
+} else turnBanner.textContent = t("finished");
+// Winner Banner
+const winnerBanner = $("winnerBanner");
+if (room.status === "finished") {
+winnerBanner.classList.remove("hidden");
+const winner = activePlayers[0];
+winnerBanner.textContent = winner ? t("winner") + winner.nickname + " !" : t("finished");
+if (winner && winner.user_id === me.id) playSound('win');
+} else {
+winnerBanner.classList.add("hidden");
+}
+// Target Selector
+const possibleTargets = activePlayers.filter(p => p.user_id !== me.id);
+$("targetGrid").innerHTML = possibleTargets.map(p => ⁠<button class="target-btn ${selectedTarget === p.user_id ? 'selected' : ''}" data-id="${p.user_id}"> 🎯 ${escapeHtml(p.nickname)} </button>⁠).join("");
+document.querySelectorAll("#targetGrid .target-btn").forEach(btn => {
+btn.onclick = () => selectTarget(btn.dataset.id);
+});
+if (possibleTargets.length === 1) {
+selectedTarget = possibleTargets[0].user_id;
+const autoBtn = $("targetGrid").querySelector(⁠[data-id="${selectedTarget}"]⁠);
+if (autoBtn) autoBtn.classList.add("selected");
+}
+// Controls State
+$("guessPanel").classList.toggle("hidden", room.status !== "playing" || myPlayer?.eliminated || activePlayers.length <= 1);
+$("guessBtn").disabled = !isMyTurn;
+// History Feed
+let historyQuery = await sb.from("guesses").select("*").eq("room_id", room.id).order("created_at", { ascending: false }).limit(50);
+if (!historyQuery.error) {
+$("historyList").innerHTML = historyQuery.data.map(g => ⁠<div class="guess-card"> <div class="guess-info"> <span class="guess-route">${escapeHtml(g.guesser_name)} ➔ ${escapeHtml(g.target_name)}</span> <span class="guess-value">${g.guess}</span> </div> <div class="guess-chips"> ${"🟩".repeat(g.exact)}${"🟨".repeat(g.misplaced)}${"⬜".repeat(4 - g.exact - g.misplaced)} </div> </div>⁠).join("") || "<p>" + t("waiting") + "</p>";
+}
+}
+$("guessBtn").onclick = async () => {
+playSound('click');
+const guess = ￼
+if (!/^\d{4}/.test(guess)) return toast(t("invalid"));
+if (!selectedTarget) return toast(t("select"));
+let res = await sb.rpc("submit_guess", { p_room_id: room.id, p_target_id: selectedTarget, p_guess: guess });
+if (res.error) return toast(res.error.message);
+$("guessInput").value = "";
+const result = res.data?.[0];
+if (result?.eliminated) {
+playSound('hit');
+toast(t("found"));
+}
+await refreshGame();
+};
+$("copyLinkBtn").onclick = async () => {
+playSound('click');
+await navigator.clipboard.writeText(location.href);
+toast(t("copied"));
+};
+$("leaveLobbyBtn").onclick = $("leaveGameBtn").onclick = async () => {
+playSound('click');
+if (room && me) {
+await sb.rpc("handle_player_disconnect", { p_room_id: room.id, p_user_id: me.id });
+}
+location.href = location.pathname;
+};
+window.addEventListener("beforeunload", () => {
+if (room && me) {
+sb.rpc("handle_player_disconnect", { p_room_id: room.id, p_user_id: me.id });
+}
+});
+$("joinBtn").onclick = joinRoom;
+$("language").onchange = e => {
+lang = e.target.value;
+localStorage.setItem("cb_lang", lang);
+applyLang();
+};
+$("soundToggle").onclick = () => {
+soundEnabled = !soundEnabled;
+$("soundToggle").textContent = soundEnabled ? "🔊" : "🔇";
+};
+$("saveConfigBtn").onclick = () => {
+const url = $("cfgUrl").value.trim();
+const key = $("cfgKey").value.trim();
+if (url && key) {
+localStorage.setItem("cb_sb_url", url);
+localStorage.setItem("cb_sb_key", key);
+CONFIG.SUPABASE_URL = url;
+CONFIG.SUPABASE_ANON_KEY = key;
+sb = window.supabase.createClient(url, key);
+isConfigured = true;
+$("configModal").classList.add("hidden");
+toast("Supabase configuré avec succès !");
+}
+};
+applyLang();
+// Deep-linking support
+const urlParams = new URLSearchParams(location.search);
+if (urlParams.get("room")) {
+$("roomCode").value = urlParams.get("room");
+}
+</script>
 </body>
 </html>
