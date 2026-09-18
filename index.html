@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <title>CodeBreak Party</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🔐 CodeBreak <span>Party</span></div>
+    <select id="language" aria-label="Language">
+      <option value="fr">🇫🇷 Français</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="nl">🇳🇱 Nederlands</option>
+    </select>
+  </header>
+
+  <main>
+    <section id="home" class="screen active">
+      <div class="hero card">
+        <div class="eyebrow">MULTIPLAYER • 4 DIGITS</div>
+        <h1 data-i18n="title">Trouve les codes. Reste le dernier.</h1>
+        <p data-i18n="subtitle">Crée un salon, partage le même lien et joue en temps réel.</p>
+        <div class="grid2">
+          <label><span data-i18n="nickname">Pseudo</span><input id="nickname" maxlength="18" autocomplete="nickname" placeholder="Ton pseudo"></label>
+          <label><span data-i18n="roomCode">Code du salon</span><input id="roomCode" maxlength="12" autocapitalize="characters" placeholder="PARTY1"></label>
+        </div>
+        <button id="joinBtn" class="primary" data-i18n="join">Rejoindre le salon</button>
+        <p id="configWarning" class="warning hidden"></p>
+      </div>
+      <div class="rules card">
+        <h2 data-i18n="how">Comment jouer</h2>
+        <ul>
+          <li data-i18n="rule1">Chaque joueur choisit un code secret de 4 chiffres.</li>
+          <li data-i18n="rule2">À ton tour, choisis un joueur et propose 4 chiffres.</li>
+          <li data-i18n="rule3">🟩 bien placé • 🟨 mal placé • ⬜ absent.</li>
+          <li data-i18n="rule4">Si tu trouves le code exact, le joueur ciblé est éliminé.</li>
+          <li data-i18n="rule5">À plus de 2 joueurs, la partie continue jusqu'au dernier joueur restant.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="lobby" class="screen">
+      <div class="card">
+        <div class="room-head">
+          <div><small data-i18n="room">Salon</small><strong id="roomLabel"></strong></div>
+          <button id="copyLink" class="secondary" data-i18n="copyLink">Copier le lien</button>
+        </div>
+        <h1 data-i18n="lobbyTitle">Salle d'attente</h1>
+        <p id="lobbyStatus"></p>
+        <div id="players" class="players"></div>
+        <div class="secret-row">
+          <label><span data-i18n="secret">Ton code secret (4 chiffres)</span><input id="secret" inputmode="numeric" maxlength="4" type="password" placeholder="••••"></label>
+          <button id="readyBtn" class="primary" data-i18n="ready">Je suis prêt</button>
+        </div>
+        <button id="startBtn" class="primary hidden" data-i18n="start">Lancer la partie</button>
+        <button id="leaveLobby" class="ghost" data-i18n="leave">Quitter</button>
+      </div>
+    </section>
+
+    <section id="game" class="screen">
+      <div class="card">
+        <div class="game-head">
+          <div><small data-i18n="room">Salon</small><strong id="gameRoom"></strong></div>
+          <div id="phaseBadge" class="badge"></div>
+        </div>
+        <div id="winnerBanner" class="winner hidden"></div>
+        <div id="gamePlayers" class="players"></div>
+        <div id="guessPanel" class="guess-panel">
+          <h2 data-i18n="yourTurn">À toi de jouer</h2>
+          <p data-i18n="chooseTarget">Choisis un adversaire encore en jeu.</p>
+          <div id="targetButtons" class="target-buttons"></div>
+          <label><span data-i18n="guess">Code à tester</span><input id="guess" inputmode="numeric" maxlength="4" placeholder="1234"></label>
+          <button id="guessBtn" class="primary" data-i18n="try">Tester le code</button>
+          <p id="turnMessage" class="warning hidden"></p>
+        </div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="history">Historique</h2>
+        <div id="history" class="history"></div>
+      </div>
+      <button id="leaveGame" class="ghost" data-i18n="leave">Quitter</button>
+    </section>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>
